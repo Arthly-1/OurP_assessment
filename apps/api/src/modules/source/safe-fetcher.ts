@@ -88,6 +88,13 @@ export class SafeFetcher {
         await body.dump();
         throw Errors.sourceNotFound(statusCode);
       }
+      if (statusCode === 401 || statusCode === 403) {
+        await body.dump();
+        throw Errors.sourceError(
+          `The source server denied access (HTTP ${statusCode}). The image is probably private, ` +
+            'behind a login, or blocks automated downloads. Use a publicly accessible image URL.',
+        );
+      }
       if (statusCode < 200 || statusCode >= 300) {
         await body.dump();
         throw Errors.sourceError(`The source server responded with HTTP ${statusCode}.`);

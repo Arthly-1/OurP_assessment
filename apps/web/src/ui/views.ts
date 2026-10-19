@@ -206,6 +206,8 @@ const HINTS: Record<string, string> = {
   url_not_allowed:
     'Only public http(s) URLs on ports 80 and 443 are fetched; private and internal addresses are blocked.',
   source_not_found: 'Check the URL: the origin server answered 404/410.',
+  source_error:
+    'If this says 401 or 403, the image is private or blocks downloads. Use a URL that opens without logging in.',
   source_unreachable: 'Check the hostname and that the server is online.',
   source_timeout: 'The origin did not respond in time. Try again, or use a faster host.',
   source_too_large: 'Use a smaller source file.',
