@@ -11,7 +11,7 @@ GET /process?url=https://example.com/photo.jpg&width=500&height=300&format=webp&
 - **Docs:** OpenAPI 3 at `/openapi.json` with interactive docs at `/docs`.
 - **Deployable:** one Docker image serves API and UI, with a health check at `/health`.
 
-**Live URL:** not deployed. Deployment was optional, and I spent the time on the safety and quality of the service instead. The [deployment steps](#deployment) are written and the Docker image has been built and run locally.
+**Live URL:** https://image-processing-service.vercel.app (UI at `/`, API docs at `/docs`, health at `/health`). It runs on Vercel's free Hobby plan as a serverless function, so the first request after a quiet period has a short cold start, and a few behaviours differ from a long-running container; see [Vercel](#vercel-free-hobby-plan-no-card) for the trade-offs. The Docker image and Render blueprint are included as the stricter, long-running option.
 
 **Contents:** [Setup and testing](#setup-and-testing-locally) · [API reference](#api-reference) · [Deployment](#deployment) · [Architecture and trade-offs](#architecture-and-key-trade-offs) · [Limits and safeguards](#limits-and-safeguards) · [What I would do next](#what-i-would-do-next) · [Configuration](#configuration)
 
@@ -184,7 +184,7 @@ Error responses are `Cache-Control: no-store`.
 
 ## Deployment
 
-Not deployed at submission time, but it is reproducible from this repository.
+Deployed on Vercel (live URL above), and reproducible on any container host from this repository.
 
 ### Docker (any host)
 
@@ -207,7 +207,7 @@ Any container host (Fly.io, Railway, Cloud Run…) works the same way: build the
 
 ### Vercel (free Hobby plan, no card)
 
-`vercel.json` and `api/index.js` run the same app as a Vercel serverless function, with the UI served as static files from the CDN. Import the repository in Vercel (or deploy with the Vercel CLI); no settings are needed, because the build, output directory and URL rewrites are in `vercel.json`.
+`vercel.json` and `api/index.js` run the same app as a Vercel serverless function, with the UI served as static files from the CDN. Import the repository in Vercel (or run `vercel deploy --prod`); no settings are needed, because the build, output directory and URL rewrites are in `vercel.json`.
 
 Serverless changes a few behaviours, so I treated them as deliberate trade-offs:
 
@@ -352,7 +352,7 @@ In rough priority order:
 6. **More transforms:** rotate, blur, grayscale, smart crop (gravity), DPR; animated output; HEIC/TIFF input behind an explicit flag.
 7. **Egress isolation:** run the fetcher behind a network namespace or egress proxy that physically cannot reach internal ranges, the strongest SSRF defence beyond application checks.
 8. **Conditional revalidation of sources** (`If-None-Match`/`Last-Modified` upstream) instead of fixed TTLs, and `stale-while-revalidate`.
-9. **Deploy it** and keep it running as the brief describes, with the cold-start note above.
+9. **Keep it running** for the review window as the brief describes, and move to a long-running host (Docker/Render) if shared caches and a stricter rate limit matter.
 
 ---
 
