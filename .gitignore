@@ -7,3 +7,6 @@ coverage/
 !.env.example
 .DS_Store
 .vite/
+
+# Assessment brief (not part of the deliverable)
+Ours-Privacy_SWE_Take-Home_Image_Processing_Service.pdf
