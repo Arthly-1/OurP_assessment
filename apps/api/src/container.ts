@@ -57,6 +57,7 @@ export function createContainer(config: AppConfig, overrides: ContainerOverrides
       sizeOf: (image) => image.data.length,
     }),
     flights: new SingleFlight<ProcessedImage>(),
+    maxOutputBytes: config.output.maxBytes,
   });
 
   return { imageService, close: () => fetcher.close() };

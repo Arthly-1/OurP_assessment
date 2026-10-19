@@ -117,6 +117,14 @@ export const Errors = {
         `the maximum is ${maxDimension}px per side. Lower width/height or provide both.`,
     ),
 
+  outputTooHeavy: (actualBytes: number, maxBytes: number) =>
+    new AppError(
+      'output_too_large',
+      422,
+      `The processed image is ${formatBytes(actualBytes)}, but this deployment returns at most ` +
+        `${formatBytes(maxBytes)}. Lower the width/height or quality, or choose a smaller format.`,
+    ),
+
   notFound: (message = 'Route not found.') => new AppError('not_found', 404, message),
 
   rateLimited: (retryAfterSeconds: number) =>

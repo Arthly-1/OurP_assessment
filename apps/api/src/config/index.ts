@@ -56,6 +56,8 @@ const envSchema = z.object({
   ALLOW_PRIVATE_NETWORKS: booleanFromEnv.default(false),
 
   MAX_OUTPUT_DIMENSION: z.coerce.number().int().positive().default(4096),
+  /** Largest response body we will return, in bytes. 0 = unlimited. */
+  MAX_OUTPUT_BYTES: z.coerce.number().int().min(0).default(0),
   MAX_CONCURRENT_TRANSFORMS: z.coerce
     .number()
     .int()
@@ -95,6 +97,8 @@ export interface AppConfig {
   };
   output: {
     maxDimension: number;
+    /** 0 = unlimited. Set where the host caps response size (e.g. serverless platforms). */
+    maxBytes: number;
     maxConcurrentTransforms: number;
     maxQueuedTransforms: number;
   };
@@ -141,6 +145,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     },
     output: {
       maxDimension: e.MAX_OUTPUT_DIMENSION,
+      maxBytes: e.MAX_OUTPUT_BYTES,
       maxConcurrentTransforms: e.MAX_CONCURRENT_TRANSFORMS,
       maxQueuedTransforms: e.MAX_QUEUED_TRANSFORMS,
     },

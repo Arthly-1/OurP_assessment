@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { Errors } from '../../errors/app-error.js';
 import type { Semaphore } from '../../lib/semaphore.js';
 import type { Cache } from '../cache/byte-cache.js';
 import type { SingleFlight } from '../cache/single-flight.js';
@@ -48,6 +49,8 @@ export interface ImageServiceDeps {
   limiter: Pick<Semaphore, 'run'>;
   resultCache: Cache<ProcessedImage>;
   flights: SingleFlight<ProcessedImage>;
+  /** Reject results larger than this many bytes (0 or undefined = no limit). */
+  maxOutputBytes?: number;
 }
 
 const CONTENT_TYPES: Record<OutputFormat, string> = {
@@ -94,6 +97,11 @@ export class ImageService {
           metadata,
         ),
       );
+
+      const { maxOutputBytes } = this.deps;
+      if (maxOutputBytes && result.data.length > maxOutputBytes) {
+        throw Errors.outputTooHeavy(result.data.length, maxOutputBytes);
+      }
 
       const entry: ProcessedImage = {
         data: result.data,

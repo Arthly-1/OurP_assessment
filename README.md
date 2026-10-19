@@ -205,6 +205,19 @@ The image is multi-stage (build → production dependencies → runtime), runs a
 
 Any container host (Fly.io, Railway, Cloud Run…) works the same way: build the Dockerfile, set `PORT` if required, point the health check at `/health`, and set `TRUST_PROXY` to the number of proxies in front of the service.
 
+### Vercel (free Hobby plan, no card)
+
+`vercel.json` and `api/index.js` run the same app as a Vercel serverless function, with the UI served as static files from the CDN. Import the repository in Vercel (or deploy with the Vercel CLI); no settings are needed, because the build, output directory and URL rewrites are in `vercel.json`.
+
+Serverless changes a few behaviours, so I treated them as deliberate trade-offs:
+
+- **Response size cap:** Vercel rejects function responses over 4.5 MB. The adapter sets `MAX_OUTPUT_BYTES=4000000`, so an oversized result returns a clear `422 output_too_large` ("the processed image is 22.3 MB, but this deployment returns at most 3.8 MB…") instead of an opaque platform error. Large lossless PNGs are the usual trigger; JPEG/WebP/AVIF at normal quality are fine.
+- **Caches are per warm instance:** the in-memory result/source caches only live as long as a function instance stays warm, so they help less than on a long-running container. HTTP caching (`Cache-Control`, `ETag`) still works and is the main win here; Redis would be the fix at scale.
+- **Rate limiting is per instance:** counts are not shared across concurrent instances, so the limit is softer than on a single container.
+- **Time limit:** the function is capped at 30 s and the source fetch deadline is lowered to 8 s.
+
+For a stricter, long-running deployment use Docker/Render above.
+
 ### CI
 
 `.github/workflows/ci.yml` runs the format check, lint, typecheck and build on every push and pull request, then builds the Docker image and smoke-tests `/health` inside the container.
@@ -360,6 +373,7 @@ Every setting is an environment variable with a safe default (`.env.example` lis
 | `ALLOWED_HOSTS`                                       | _(any public host)_       | Optional allow-list (matches subdomains)                                       |
 | `ALLOW_PRIVATE_NETWORKS`                              | `false`                   | **Development only.** Disables the SSRF address checks                         |
 | `MAX_OUTPUT_DIMENSION`                                | `4096`                    | Max output width/height                                                        |
+| `MAX_OUTPUT_BYTES`                                    | `0` (unlimited)           | Max response size in bytes; set where the host caps responses (Vercel: 4 MB)   |
 | `MAX_CONCURRENT_TRANSFORMS` / `MAX_QUEUED_TRANSFORMS` | `min(CPUs,4)` / `16`      | Transform concurrency and queue depth                                          |
 | `CACHE_TTL_SECONDS`                                   | `3600`                    | Result-cache TTL and `Cache-Control` max-age                                   |
 | `RESULT_CACHE_MB` / `SOURCE_CACHE_MB`                 | `128` / `64`              | Cache byte budgets                                                             |
