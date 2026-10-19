@@ -1,0 +1,23 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Create a "Blueprint" service from this repository and Render builds the Dockerfile.
+services:
+  - type: web
+    name: image-processing-service
+    runtime: docker
+    plan: free # note: free instances sleep when idle, so the first request after a pause is slow
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: TRUST_PROXY # Render terminates TLS and adds one proxy hop in front of the service
+        value: '1'
+      # The free plan has 512 MB of RAM: keep the in-memory caches and concurrency modest.
+      - key: RESULT_CACHE_MB
+        value: '64'
+      - key: SOURCE_CACHE_MB
+        value: '32'
+      - key: MAX_CONCURRENT_TRANSFORMS
+        value: '2'
+      - key: MAX_QUEUED_TRANSFORMS
+        value: '8'
+      # No secrets are required. If you add one (e.g. an API key), declare it with
+      # `sync: false` here and set the value in the Render dashboard, never in this file.
