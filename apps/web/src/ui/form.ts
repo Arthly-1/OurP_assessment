@@ -66,16 +66,32 @@ export class TransformForm {
     );
     this.input('crop').addEventListener('change', () => this.updateCropHint());
     this.updateCropHint();
+
+    // A colour input always holds *a* colour, so "no background" is tracked separately.
+    this.input('background').addEventListener('input', () => {
+      this.input('background').dataset.empty = 'false';
+      this.reflectBackground();
+    });
+    requireElement('#background-clear', this.element).addEventListener('click', () => {
+      this.writeBackground('');
+      this.element.dispatchEvent(new Event('input', { bubbles: true })); // refresh the request preview
+    });
   }
 
   read(): FormState {
     return Object.fromEntries(
-      FIELD_NAMES.map((name) => [name, this.input(name).value]),
+      FIELD_NAMES.map((name) => [
+        name,
+        name === 'background' ? this.readBackground() : this.input(name).value,
+      ]),
     ) as unknown as FormState;
   }
 
   write(state: Partial<FormState>): void {
-    for (const name of FIELD_NAMES) this.input(name).value = state[name] ?? '';
+    for (const name of FIELD_NAMES) {
+      if (name !== 'background') this.input(name).value = state[name] ?? '';
+    }
+    this.writeBackground(state.background ?? '');
     this.updateCropHint();
     this.clearErrors();
   }
@@ -116,6 +132,29 @@ export class TransformForm {
     }
   }
 
+  /** The API takes hex without "#"; empty means "not set". */
+  private readBackground(): string {
+    const input = this.input('background');
+    return input.dataset.empty === 'true' ? '' : input.value.replace('#', '').toLowerCase();
+  }
+
+  private writeBackground(value: string): void {
+    const input = this.input('background');
+    const hex = toFullHex(value);
+    input.value = hex ?? '#ffffff';
+    input.dataset.empty = hex ? 'false' : 'true';
+    this.reflectBackground();
+  }
+
+  private reflectBackground(): void {
+    const input = this.input('background');
+    const isEmpty = input.dataset.empty === 'true';
+    requireElement('#background-value', this.element).textContent = isEmpty
+      ? 'None (default)'
+      : input.value.toLowerCase();
+    requireElement('#background-clear', this.element).hidden = isEmpty;
+  }
+
   private input(name: string): HTMLInputElement & HTMLSelectElement {
     return requireElement<HTMLInputElement & HTMLSelectElement>(`#${name}`, this.element);
   }
@@ -130,6 +169,14 @@ export class TransformForm {
     const selected = CROP_OPTIONS.find((option) => option.value === this.input('crop').value);
     requireElement('#crop-hint').textContent = selected?.hint ?? '';
   }
+}
+
+/** "f0a" or "#ff00aa" -> "#ff00aa"; anything else -> undefined. */
+function toFullHex(value: string): string | undefined {
+  const hex = value.trim().replace(/^#/, '').toLowerCase();
+  if (/^[0-9a-f]{6}$/.test(hex)) return `#${hex}`;
+  if (/^[0-9a-f]{3}$/.test(hex)) return `#${[...hex].map((c) => c + c).join('')}`;
+  return undefined;
 }
 
 export function stateToSearch(state: FormState): string {

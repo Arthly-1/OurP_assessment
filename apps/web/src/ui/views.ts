@@ -79,7 +79,8 @@ export function renderOriginalCard(card: HTMLElement, state: CardState<OriginalD
     referrerpolicy: 'no-referrer',
     decoding: 'async',
   });
-  const frame = h('div', { class: 'frame checkerboard' }, image);
+  const frame = h('div', { class: 'frame checkerboard is-loading' }, image);
+  image.addEventListener('load', () => frame.classList.remove('is-loading'));
   image.addEventListener('error', () => {
     frame.replaceChildren(
       placeholder(

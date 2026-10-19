@@ -375,6 +375,36 @@ select:focus {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+/* Colour picker with an explicit "none" state */
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-field input[type='color'] {
+  flex: none;
+  width: 52px;
+  height: 40px;
+  padding: 3px;
+  cursor: pointer;
+}
+
+.color-field input[type='color'][data-empty='true'] {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+.color-value {
+  flex: 1;
+  color: var(--muted);
+  font:
+    0.85rem ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
 select {
   appearance: none;
   padding-right: 34px;
@@ -608,6 +638,16 @@ button:disabled {
   background-position:
     0 0,
     8px 8px;
+}
+
+.frame.is-loading {
+  background-image: linear-gradient(90deg, var(--check-a), var(--check-b), var(--check-a));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.frame.is-loading img {
+  opacity: 0;
 }
 
 .frame img {

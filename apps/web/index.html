@@ -177,17 +177,28 @@
 
           <div class="field" data-field="background">
             <label for="background"
-              >Background colour <span class="optional">(hex, no #)</span></label
+              >Background colour <span class="optional">(optional)</span></label
             >
-            <input
-              id="background"
-              name="background"
-              type="text"
-              placeholder="ffffff"
-              maxlength="6"
-              spellcheck="false"
-            />
-            <p class="hint">Used by <code>pad</code> and when flattening transparency to JPEG.</p>
+            <div class="color-field">
+              <input
+                id="background"
+                name="background"
+                type="color"
+                value="#ffffff"
+                data-empty="true"
+                aria-describedby="background-value"
+              />
+              <output id="background-value" class="color-value" for="background"
+                >None (default)</output
+              >
+              <button type="button" id="background-clear" class="secondary small" hidden>
+                Clear
+              </button>
+            </div>
+            <p class="hint">
+              Used by <code>pad</code> and when flattening transparency to JPEG. Leave it unset for
+              the default (transparent, or white for JPEG).
+            </p>
             <p class="field-error" role="alert" hidden></p>
           </div>
 
